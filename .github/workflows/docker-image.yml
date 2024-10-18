@@ -19,7 +19,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build the Docker image
-      run: docker build . -t myusername/todo-api
+      run: docker build . -t hassielam/todo-api
 
     - name: Push the Docker image
-      run: docker push myusername/todo-api
+      run: docker push hassielam/todo-api
