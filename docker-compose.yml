@@ -1,20 +1,31 @@
 version: '3.8'
+
 services:
-  api:
-    build: .
+  mysql:
+    image: mysql:5.7
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: mydatabase
+    ports:
+      - "3306:3306"
+    networks:
+      - todo-network
+    restart: always
+
+  todo-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todo_api_container
     ports:
       - "3000:3000"
     depends_on:
-      - db
-    environment:
-      - DATABASE_URL=mysql://user:password@db:3306/todo_db
-    
-  db:
-    image: mysql:5.7
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: todo_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      - mysql
+    networks:
+      - todo-network
+    restart: always
+
+networks:
+  todo-network:
+    driver: bridge

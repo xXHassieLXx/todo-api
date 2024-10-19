@@ -1,54 +1,72 @@
-import { Router } from 'express';
-import { Todo } from '../models/Todo';
+import { Router, Request, Response } from 'express';
+import { Todo } from '../models/Todo'; // Asegúrate de que la ruta al modelo sea correcta
 
 const router = Router();
 
-// Obtener todas las tareas
-router.get('/todos', async (req, res) => {
-    const todos = await Todo.findAll();
-    res.json(todos);
-});
-
-// Obtener una tarea por su ID
-router.get('/todos/:id', async (req, res) => {
-    const todo = await Todo.findByPk(req.params.id);
-    if (todo) {
-        res.json(todo);
-    } else {
-        res.status(404).json({ error: 'Todo not found' });
-    }
-});
-
 // Crear una nueva tarea
-router.post('/todos', async (req, res) => {
-    const { title, description } = req.body;
-    const newTodo = await Todo.create({ title, description });
-    res.status(201).json(newTodo);
-});
-
-// Actualizar una tarea existente por su ID
-router.put('/todos/:id', async (req, res) => {
-    const { title, description, completed } = req.body;
-    const todo = await Todo.findByPk(req.params.id);
-    if (todo) {
-        todo.title = title;
-        todo.description = description;
-        todo.completed = completed;
-        await todo.save();
-        res.json(todo);
-    } else {
-        res.status(404).json({ error: 'Todo not found' });
+router.post('/todos', async (req: Request, res: Response) => {
+    try {
+        const todo = await Todo.create(req.body);
+        res.status(201).json(todo);
+    } catch (error) {
+        res.status(500).json({ error: 'Error creando la tarea' });
     }
 });
 
-// Eliminar una tarea por su ID
-router.delete('/todos/:id', async (req, res) => {
-    const todo = await Todo.findByPk(req.params.id);
-    if (todo) {
-        await todo.destroy();
-        res.status(204).send();
-    } else {
-        res.status(404).json({ error: 'Todo not found' });
+// Obtener todas las tareas
+router.get('/todos', async (req: Request, res: Response) => {
+    try {
+        const todos = await Todo.findAll();
+        res.status(200).json(todos);
+    } catch (error) {
+        res.status(500).json({ error: 'Error obteniendo las tareas' });
+    }
+});
+
+// Obtener una tarea por ID
+router.get('/todos/:id', async (req: Request, res: Response) => {
+    try {
+        const todo = await Todo.findByPk(req.params.id);
+        if (todo) {
+            res.status(200).json(todo);
+        } else {
+            res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Error obteniendo la tarea' });
+    }
+});
+
+// Actualizar una tarea
+router.put('/todos/:id', async (req: Request, res: Response) => {
+    try {
+        const [updated] = await Todo.update(req.body, {
+            where: { id: req.params.id }
+        });
+        if (updated) {
+            const updatedTodo = await Todo.findByPk(req.params.id);
+            res.status(200).json(updatedTodo);
+        } else {
+            res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Error actualizando la tarea' });
+    }
+});
+
+// Eliminar una tarea
+router.delete('/todos/:id', async (req: Request, res: Response) => {
+    try {
+        const deleted = await Todo.destroy({
+            where: { id: req.params.id }
+        });
+        if (deleted) {
+            res.status(204).send();
+        } else {
+            res.status(404).json({ error: 'Tarea no encontrada' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Error eliminando la tarea' });
     }
 });
 
